@@ -26,7 +26,7 @@ public class Controller {
             String response = service.getBuckets();
             return ResponseEntity.ok().body(response);
         } catch (Exception e) {
-            log.error("{} :: controller method :: error in checking api",
+            log.error("{} :: health method :: error in checking api",
                     Controller.class.getSimpleName(), e);
             return ResponseEntity.internalServerError()
                     .body(e.getMessage());
@@ -37,13 +37,16 @@ public class Controller {
             value = {"/upload"},
             consumes = {"multipart/form-data"}
     )
-    public String upload(@RequestParam("file") MultipartFile file) throws Exception {
-        log.info("{} :: controller method :: uploading file {}", Controller.class.getSimpleName(), file.getOriginalFilename());
-        return service.upload();
+    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file) {
+        log.info("{} :: upload method :: uploading file {}",
+                Controller.class.getSimpleName(), file.getOriginalFilename());
+        String response = service.uploadFileToS3(file);
+        if(response.contains("successfully"))
+            return ResponseEntity.ok()
+                .body(response);
+        else
+            return ResponseEntity.internalServerError()
+            .body(response);
     }
 
-    @PostMapping({"/create"})
-    public String upload() {
-        return service.upload();
-    }
 }
