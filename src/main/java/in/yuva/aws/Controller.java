@@ -19,7 +19,7 @@ public class Controller {
     @Autowired
     private Controller (Service service){
         this.service = service;
-    };
+    }
 
     @GetMapping(ENDPOINT.UP)
     public ResponseEntity<String> health() {
@@ -44,7 +44,7 @@ public class Controller {
         log.info("{} :: upload method :: uploading file {}",
                 Controller.class.getSimpleName(), file.getOriginalFilename());
         String response = service.uploadFileToS3(file);
-        if(response.contains("successfully"))
+        if(response.contains(CONSTANTS.SUCCESS))
             return ResponseEntity.ok()
                 .body(response);
         else
@@ -58,7 +58,7 @@ public class Controller {
                 Controller.class.getSimpleName(), filename);
         String folderName = LocalDate.now().toString() + "/";
         String response = service.getFileFromS3(filename,folderName);
-        if(response.contains("successfully"))
+        if(response.contains(CONSTANTS.SUCCESS))
             return ResponseEntity.ok()
                     .body(response);
         else
@@ -72,7 +72,7 @@ public class Controller {
                 Controller.class.getSimpleName(), filename);
         String folderName = LocalDate.now().toString() + "/";
         String response = service.deleteFromS3(filename,folderName);
-        if(response.contains("successfully"))
+        if(response.contains(CONSTANTS.SUCCESS))
             return ResponseEntity.ok()
                     .body(response);
         else

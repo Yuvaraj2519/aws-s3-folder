@@ -2,7 +2,6 @@ package in.yuva.aws;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.time.LocalDate;
 
 import lombok.extern.log4j.Log4j2;
@@ -35,9 +34,9 @@ public class Service {
             log.info("{} :: getBuckets method :: fetching buckets", Service.class.getSimpleName());
             ListBucketsResponse buckets = s3Client.listBuckets();
             StringBuilder builder = new StringBuilder();
-            buckets.buckets().forEach((bucket) -> {
-                builder.append(bucket.name()).append(" created on : ").append(bucket.creationDate());
-            });
+            buckets.buckets().forEach((bucket) ->  builder.append(bucket.name())
+                    .append(" created on : ")
+                    .append(bucket.creationDate()));
             log.info("{} :: getBuckets method :: buckets fetched {}", Service.class.getSimpleName(), builder);
             return builder.toString();
         } catch (Exception e) {
@@ -64,8 +63,8 @@ public class Service {
                     RequestBody.fromBytes(file.getBytes()));
 
             log.info("{} :: uploadFileToS3 method :: file uploaded :: metadata {}",
-                    Service.class.getSimpleName() ,putObjectResponse.responseMetadata().toString());
-            return "File "+ file.getOriginalFilename() +" uploaded successfully";
+                    Service.class.getSimpleName(), putObjectResponse.responseMetadata().toString());
+            return "File " + file.getOriginalFilename() + " uploaded successfully";
         } catch (Exception e) {
             log.error("{} :: uploadFileToS3 method :: Error while uploading file {}",
                     Service.class.getSimpleName(), e.getMessage());
@@ -107,7 +106,7 @@ public class Service {
 
     }
 
-    public String getFileFromS3(String fileName, String folderName) throws IOException {
+    public String getFileFromS3(String fileName, String folderName) {
         log.info("{} :: getFileFromS3 method :: getting file from s3 {}",
                 Service.class.getSimpleName(), fileName);
 
@@ -122,19 +121,11 @@ public class Service {
             ClassPathResource classPathResource = new ClassPathResource("");
             String targetFilename = classPathResource.getPath() + fileName;
             File targetfile = new File(targetFilename);
-            try (FileOutputStream output = new FileOutputStream(targetfile)){
-                byte[] buffer = new byte[8 * 1024];
-                int byteRead;
-                while ((byteRead = response.read(buffer)) != -1){
-                    output.write(buffer,0,byteRead);
-                }
-                log.info("{} :: getFileFromS3 method :: file downloaded successfully {}",
-                Service.class.getSimpleName(), fileName);
-                return "File "+fileName+" downloaded successfully";
-            } catch (Exception e){
-                log.error("Error while accessing download file {}", e.getMessage());
+            String out = writeFile(targetfile, response, fileName);
+            if (out.contains(CONSTANTS.SUCCESS))
+                return "File " + fileName + " downloaded successfully";
+            else
                 return "Failed to download";
-            }
         } catch (AwsServiceException e) {
             log.error("{} :: getFileFromS3 method :: Error getting file from s3 {}",
                     Service.class.getSimpleName(), e.getMessage());
@@ -142,7 +133,23 @@ public class Service {
         }
     }
 
-    public String deleteFromS3(String fileName, String folderName){
+    public String writeFile(File targetfile, ResponseInputStream<GetObjectResponse> response, String fileName) {
+        try (FileOutputStream output = new FileOutputStream(targetfile)) {
+            byte[] buffer = new byte[8 * 1024];
+            int byteRead;
+            while ((byteRead = response.read(buffer)) != -1) {
+                output.write(buffer, 0, byteRead);
+            }
+            log.info("{} :: getFileFromS3 method :: file downloaded successfully {}",
+                    Service.class.getSimpleName(), fileName);
+            return "File " + fileName + " downloaded successfully";
+        } catch (Exception e) {
+            log.error("Error while writing file {}", e.getMessage());
+            return "Failed to write file";
+        }
+    }
+
+    public String deleteFromS3(String fileName, String folderName) {
         log.info("{} :: deleteFromS3 method :: deleting file from s3 {}",
                 Service.class.getSimpleName(), fileName);
 
@@ -156,8 +163,8 @@ public class Service {
             s3Client.deleteObject(deleteObjectRequest);
             log.info("{} :: deleteFromS3 method :: deleted file successfully",
                     Service.class.getSimpleName());
-            return "File "+fileName+" deleted successfully";
-        } catch (AwsServiceException e){
+            return "File " + fileName + " deleted successfully";
+        } catch (AwsServiceException e) {
             log.error("Error while deleting file {}", e.getMessage());
             return "Failed to delete";
         }
