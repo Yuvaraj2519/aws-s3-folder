@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +25,7 @@ public class Service {
 
     private final S3Client s3Client;
 
+    @Autowired
     public Service(S3Client s3Client) {
         this.s3Client = s3Client;
     }

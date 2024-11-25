@@ -14,8 +14,12 @@ import java.time.LocalDate;
 @Log4j2
 public class Controller {
 
+    private final Service service;
+
     @Autowired
-    private Service service;
+    private Controller (Service service){
+        this.service = service;
+    };
 
     @GetMapping(ENDPOINT.UP)
     public ResponseEntity<String> health() {
